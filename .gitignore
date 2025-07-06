@@ -1,0 +1,27 @@
+# Ansible
+*.retry
+*.bak
+*.log
+.vault_pass
+
+# SSH keys and credentials
+*.pem
+*.pub
+*.key
+*.crt
+.ssh/
+
+# Python
+__pycache__/
+*.pyc
+
+# OS/editor files
+.DS_Store
+*.swp
+.vscode/
+.idea/
+
+# Backup files
+*~
+*.old
+*.backup
