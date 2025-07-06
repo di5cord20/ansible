@@ -1,0 +1,10 @@
+---
+komodo_hosts:
+  hosts: {}
+
+general_hosts:
+  hosts: {}
+
+  vars:
+    ansible_user: ubuntu
+    ansible_ssh_private_key_file: ~/.ssh/ansible

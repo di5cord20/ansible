@@ -1,0 +1,22 @@
+---
+username: "komodo"
+timezone: "America/Toronto"
+ip_address: "{{ ansible_default_ipv4.address }}"
+docker_dir: /home/{{ username }}/docker/apps
+data_dir: /home/{{ username }}/data
+komodo_dir: /home/komodo
+
+puid: "{{ lookup('ansible.builtin.pipe', 'id -u ' + username) }}"
+pgid: "{{ lookup('ansible.builtin.pipe', 'id -g ' + username) }}"
+
+docker_dependencies:
+  - ca-certificates
+  - gnupg
+  - curl
+
+docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin

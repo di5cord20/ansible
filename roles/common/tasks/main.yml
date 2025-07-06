@@ -1,0 +1,101 @@
+---
+- name: Set timezone
+  ansible.builtin.command: timedatectl set-timezone {{ timezone }}
+  become: true
+  when: ansible_distribution in ["Debian", "Ubuntu"]
+
+- name: Update apt packages
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+    upgrade: full
+
+- name: Install required apt packages
+  ansible.builtin.package:
+    name: "{{ packages }}"
+    state: present
+
+- name: Install required pip packages
+  ansible.builtin.pip:
+    name: "{{ pip_packages }}"
+    state: present
+    break_system_packages: true
+
+- name: Create user
+  ansible.builtin.user:
+    name: "{{ username }}"
+    state: present
+    groups: sudo
+    append: yes
+    shell: /bin/bash
+    create_home: yes
+
+- name: Allow passwordless sudo for user
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ username }}"
+    content: "{{ username }} ALL=(ALL) NOPASSWD:ALL"
+    mode: "0440"
+
+- name: Suppress login messages
+  ansible.builtin.file:
+    path: "/home/{{ username }}/.hushlogin"
+    state: touch
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0644"
+  when: username != "root"
+  # when: suppress_login_messages | default(false)
+
+- name: Add Docker GPG key
+  ansible.builtin.apt_key:
+    url: https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg
+    state: present
+
+- name: Add Docker repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+    state: present
+
+- name: Install Docker dependencies
+  ansible.builtin.package:
+    name: "{{ docker_dependencies }}"
+    state: present
+
+- name: Install Docker
+  ansible.builtin.package:
+    name: "{{ docker_packages }}"
+    state: present
+
+- name: Add user to Docker group
+  ansible.builtin.user:
+    name: "{{ username }}"
+    groups: docker
+    append: true
+
+- name: Create docker directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+
+- name: Create data directory tree
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+  loop:
+    - "{{ data_dir }}"
+    - "{{ data_dir }}/torrents"
+    - "{{ data_dir }}/media"
+    - "{{ data_dir }}/media/movies"
+    - "{{ data_dir }}/media/tv"
+    - "{{ data_dir }}/torrents/movies"
+    - "{{ data_dir }}/torrents/tv"
+
+- name: Include komodo playbook if enabled
+  ansible.builtin.include_tasks: ../../komodo.yml
+  when: komodo_managed

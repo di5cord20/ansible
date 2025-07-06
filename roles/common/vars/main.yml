@@ -1,0 +1,22 @@
+---
+username: "komodo"
+timezone: "America/Toronto"
+ip_address: "{{ ansible_default_ipv4.address }}"
+docker_dir: /home/{{ username }}/docker/apps
+data_dir: /home/{{ username }}/data
+
+puid: "{{ lookup('ansible.builtin.pipe', 'id -u ' + username) }}"
+pgid: "{{ lookup('ansible.builtin.pipe', 'id -g ' + username) }}"
+
+packages:
+  - unzip
+  - wget
+  - curl
+  - git
+  - python3
+  - python3-pip
+
+pip_packages:
+  - ansible
+  - github3.py
+  - docker
